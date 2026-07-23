@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>面積図でわかる 二桁×二桁</title>
+<meta name="description" content="13×17=(10+3)×(10+7) を面積図で分解して理解するインタラクティブツール">
+<meta property="og:title" content="面積図でわかる 二桁×二桁">
+<meta property="og:description" content="二桁×二桁の掛け算を面積図で4つの部分に分解して理解するツール">
+<meta property="og:image" content="https://area.meetupsensei.com/ogp.jpg">
+<meta property="og:url" content="https://area.meetupsensei.com/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+:root{
+  --bg:#f5f6f8; --panel:#ffffff; --text:#1c2024; --sub:#5c6670; --line:#d7dbe0;
+  --btn-bg:#ffffff; --btn-border:#c8cdd3; --btn-text:#1c2024;
+  --accent:#0072b2; --on-accent:#ffffff;
+  --c1:#0072b2; --c2:#e69f00; --c3:#009e73; --c4:#cc79a7;
+}
+html[data-theme="dark"]{
+  --bg:#15181c; --panel:#1e2228; --text:#e8eaed; --sub:#a2abb5; --line:#333a42;
+  --btn-bg:#272c33; --btn-border:#3d454e; --btn-text:#e8eaed;
+  --accent:#3d9ad6; --on-accent:#0d1013;
+  --c1:#56a9dd; --c2:#e8b552; --c3:#3fb894; --c4:#d68fb8;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+  font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,system-ui,sans-serif;
+  line-height:1.6;-webkit-text-size-adjust:100%}
+.wrap{max-width:900px;margin:0 auto;padding:20px 16px 40px}
+header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:18px}
+h1{font-size:1.25rem;margin:0;font-weight:700}
+.tools{display:flex;gap:8px}
+button,select{font:inherit;color:var(--btn-text);background:var(--btn-bg);
+  border:1px solid var(--btn-border);border-radius:6px;padding:7px 12px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px}
+.controls{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end}
+.field{flex:1 1 240px;min-width:200px}
+.field label{display:block;font-size:.85rem;color:var(--sub);margin-bottom:4px}
+.row{display:flex;align-items:center;gap:10px}
+input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
+input[type=number]{font:inherit;width:72px;padding:6px 8px;border:1px solid var(--btn-border);
+  border-radius:6px;background:var(--btn-bg);color:var(--btn-text)}
+svg{width:100%;height:auto;display:block}
+.steps{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:4px}
+.eq{font-size:1.05rem;margin:14px 0 0;word-break:break-word}
+.eq .t{padding:1px 4px;border-radius:4px;font-weight:700}
+.t1{color:var(--c1)} .t2{color:var(--c2)} .t3{color:var(--c3)} .t4{color:var(--c4)}
+.dim{opacity:.22}
+.total{font-size:1.5rem;font-weight:700;margin-top:10px}
+table{width:100%;border-collapse:collapse;margin-top:12px;font-size:.92rem}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left}
+th{color:var(--sub);font-weight:600}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:7px;vertical-align:-1px}
+.note{color:var(--sub);font-size:.88rem;margin-top:10px}
+footer{text-align:center;color:var(--sub);font-size:.85rem;margin-top:26px}
+footer a{color:var(--sub)}
+@media(max-width:520px){.field{flex:1 1 100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1 id="title">面積図でわかる 二桁×二桁</h1>
+  <div class="tools">
+    <button id="lang">EN</button>
+    <button id="theme">🌙</button>
+  </div>
+</header>
+
+<div class="panel">
+  <div class="controls">
+    <div class="field">
+      <label id="lblA">たての数（10〜99）</label>
+      <div class="row"><input type="range" id="rA" min="10" max="99" value="13">
+        <input type="number" id="nA" min="10" max="99" value="13"></div>
+    </div>
+    <div class="field">
+      <label id="lblB">よこの数（10〜99）</label>
+      <div class="row"><input type="range" id="rB" min="10" max="99" value="17">
+        <input type="number" id="nB" min="10" max="99" value="17"></div>
+    </div>
+  </div>
+  <div class="steps">
+    <button id="prev">◀ <span id="prevT">もどす</span></button>
+    <button id="next" class="primary"><span id="nextT">つぎへ</span> ▶</button>
+    <button id="all"><span id="allT">全部表示</span></button>
+    <button id="grid"><span id="gridT">格子線</span>：<span id="gridS">OFF</span></button>
+    <span id="stepInfo" style="color:var(--sub);font-size:.88rem"></span>
+  </div>
+</div>
+
+<div class="panel">
+  <svg id="fig" viewBox="0 0 640 480" role="img" aria-label="area model"></svg>
+  <p class="eq" id="eq"></p>
+  <p class="total" id="total"></p>
+  <table>
+    <thead><tr><th id="hPart">部分</th><th id="hCalc">計算</th><th id="hVal">値</th></tr></thead>
+    <tbody id="tb"></tbody>
+  </table>
+  <p class="note" id="note"></p>
+</div>
+
+<footer id="foot">制作：のざたん ／ <a href="https://meetupsensei.com">meetupsensei.com</a></footer>
+</div>
+
+<script>
+const i18n={
+ ja:{title:"面積図でわかる 二桁×二桁",lblA:"たての数（10〜99）",lblB:"よこの数（10〜99）",
+  prev:"もどす",next:"つぎへ",all:"全部表示",part:"部分",calc:"計算",val:"値",
+  grid:"格子線",dense:"※数が大きいため格子線は10ごとに表示しています",
+  step:n=>`ステップ ${n} / 4`,step0:"まずは全体の長方形",
+  note:"それぞれの数を「十の位＋一の位」に分けると、長方形が4つの部分に分かれます。4つの面積を足したものが答えです。",
+  foot:'制作：のざたん ／ <a href="https://meetupsensei.com">meetupsensei.com</a>',
+  langBtn:"EN",whole:a=>`全体：${a}`},
+ en:{title:"Area Model for 2-digit × 2-digit",lblA:"Height (10–99)",lblB:"Width (10–99)",
+  prev:"Back",next:"Next",all:"Show all",part:"Part",calc:"Calculation",val:"Value",
+  grid:"Grid",dense:"* Numbers are large, so grid lines are drawn every 10",
+  step:n=>`Step ${n} / 4`,step0:"Start with the whole rectangle",
+  note:"Splitting each number into tens + ones divides the rectangle into four parts. The four areas add up to the answer.",
+  foot:'Created by Nozatan ／ <a href="https://meetupsensei.com">meetupsensei.com</a>',
+  langBtn:"日本語",whole:a=>`Whole: ${a}`}
+};
+let lang="ja",step=0,showGrid=false;
+const $=id=>document.getElementById(id);
+const rA=$("rA"),nA=$("nA"),rB=$("rB"),nB=$("nB");
+
+function sync(src,dst){dst.value=src.value}
+[[rA,nA],[nA,rA],[rB,nB],[nB,rB]].forEach(([s,d])=>s.addEventListener("input",()=>{
+  let v=parseInt(s.value); if(isNaN(v))return; v=Math.min(99,Math.max(10,v));
+  s.value=v; d.value=v; render();}));
+
+$("prev").onclick=()=>{step=Math.max(0,step-1);render()};
+$("next").onclick=()=>{step=Math.min(4,step+1);render()};
+$("all").onclick=()=>{step=4;render()};
+$("grid").onclick=()=>{showGrid=!showGrid;render()};
+$("lang").onclick=()=>{lang=lang==="ja"?"en":"ja";document.documentElement.lang=lang;render()};
+$("theme").onclick=()=>{const h=document.documentElement;
+  const d=h.getAttribute("data-theme")==="dark";h.setAttribute("data-theme",d?"light":"dark");
+  $("theme").textContent=d?"🌙":"☀️"};
+if(window.matchMedia&&matchMedia("(prefers-color-scheme:dark)").matches){
+  document.documentElement.setAttribute("data-theme","dark");$("theme").textContent="☀️";}
+
+function render(){
+  const T=i18n[lang];
+  $("title").textContent=T.title;$("lblA").textContent=T.lblA;$("lblB").textContent=T.lblB;
+  $("prevT").textContent=T.prev;$("nextT").textContent=T.next;$("allT").textContent=T.all;
+  $("hPart").textContent=T.part;$("hCalc").textContent=T.calc;$("hVal").textContent=T.val;
+  $("gridT").textContent=T.grid;$("gridS").textContent=showGrid?"ON":"OFF";
+  $("grid").classList.toggle("primary",showGrid);
+  $("note").textContent=T.note;$("foot").innerHTML=T.foot;$("lang").textContent=T.langBtn;
+  $("stepInfo").textContent=step===0?T.step0:T.step(step);
+
+  const a=+nA.value,b=+nB.value;
+  const a1=Math.floor(a/10)*10,a2=a-a1,b1=Math.floor(b/10)*10,b2=b-b1;
+  const parts=[[a1*b1,a1,b1,"c1"],[a1*b2,a1,b2,"c2"],[a2*b1,a2,b1,"c3"],[a2*b2,a2,b2,"c4"]];
+
+  // layout
+  const PAD=54,W=640,H=470,AW=W-PAD-24,AH=H-PAD-30;
+  const s=Math.min(AW/b,AH/a), bw=b*s, ah=a*s;
+  const x0=PAD,y0=36, w1=b1*s,w2=b2*s,h1=a1*s,h2=a2*s;
+  const on=i=>step===0?false:(i<step);
+  const fill=(i,c)=>on(i)?`fill="var(--${c})" fill-opacity="0.75"`:`fill="var(--panel)"`;
+  const cells=[
+    {x:x0,y:y0,w:w1,h:h1},{x:x0+w1,y:y0,w:w2,h:h1},
+    {x:x0,y:y0+h1,w:w1,h:h2},{x:x0+w1,y:y0+h1,w:w2,h:h2}];
+  let g="";
+  cells.forEach((c,i)=>{
+    if(c.w<=0||c.h<=0)return;
+    g+=`<rect x="${c.x}" y="${c.y}" width="${c.w}" height="${c.h}" ${fill(i,parts[i][3])} stroke="var(--line)"/>`;
+    if(on(i)&&c.w>44&&c.h>30)
+      g+=`<text x="${c.x+c.w/2}" y="${c.y+c.h/2+5}" text-anchor="middle" font-size="15" font-weight="700" fill="var(--text)">${parts[i][0]}</text>`;
+  });
+  let dense=false;
+  if(showGrid){
+    const st=s>=5?1:10; dense=(st===10);
+    let lines="";
+    for(let i=st;i<b;i+=st)lines+=`<line x1="${x0+i*s}" y1="${y0}" x2="${x0+i*s}" y2="${y0+ah}"/>`;
+    for(let j=st;j<a;j+=st)lines+=`<line x1="${x0}" y1="${y0+j*s}" x2="${x0+bw}" y2="${y0+j*s}"/>`;
+    g+=`<g stroke="var(--text)" stroke-opacity="0.28" stroke-width="0.6">${lines}</g>`;
+  }
+  g+=`<rect x="${x0}" y="${y0}" width="${bw}" height="${ah}" fill="none" stroke="var(--text)" stroke-width="2"/>`;
+  g+=`<line x1="${x0+w1}" y1="${y0}" x2="${x0+w1}" y2="${y0+ah}" stroke="var(--text)" stroke-width="1.5"/>`;
+  g+=`<line x1="${x0}" y1="${y0+h1}" x2="${x0+bw}" y2="${y0+h1}" stroke="var(--text)" stroke-width="1.5"/>`;
+  // labels
+  const lab=(x,y,t,anchor="middle",col="var(--sub)")=>
+    `<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="14" fill="${col}">${t}</text>`;
+  g+=lab(x0+w1/2,y0-12,b1);
+  if(w2>0)g+=lab(x0+w1+w2/2,y0-12,"+ "+b2);
+  g+=lab(x0-10,y0+h1/2+5,a1,"end");
+  if(h2>0)g+=lab(x0-10,y0+h1+h2/2+5,"+ "+a2,"end");
+  g+=lab(x0+bw/2,y0+ah+30,`${b} = ${b1} + ${b2}`,"middle","var(--text)");
+  $("fig").setAttribute("viewBox",`0 0 ${W} ${y0+ah+46}`);
+  $("fig").innerHTML=g;
+
+  // equation
+  const cls=["t1","t2","t3","t4"];
+  let eq=`<b>${a} × ${b}</b> = (${a1} + ${a2}) × (${b1} + ${b2})<br>= `;
+  eq+=parts.map((p,i)=>`<span class="t ${cls[i]} ${on(i)?"":"dim"}">${p[1]}×${p[2]}</span>`).join(" + ");
+  eq+="<br>= "+parts.map((p,i)=>`<span class="t ${cls[i]} ${on(i)?"":"dim"}">${p[0]}</span>`).join(" + ");
+  $("eq").innerHTML=eq;
+  $("note").textContent=T.note+(dense?"　"+T.dense:"");
+  const shown=parts.filter((p,i)=>on(i)).reduce((s,p)=>s+p[0],0);
+  $("total").textContent=step===4?`${a} × ${b} = ${a*b}`:(step===0?"":`→ ${shown}`);
+
+  $("tb").innerHTML=parts.map((p,i)=>
+    `<tr style="opacity:${on(i)?1:.35}"><td><span class="sw" style="background:var(--${p[3]})"></span>${i+1}</td>
+     <td>${p[1]} × ${p[2]}</td><td>${p[0]}</td></tr>`).join("")+
+    `<tr><td colspan="2"><b>${i18n[lang].whole(a+" × "+b)}</b></td><td><b>${a*b}</b></td></tr>`;
+}
+render();
+</script>
+</body>
+</html>
